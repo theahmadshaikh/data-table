@@ -35,7 +35,7 @@ const PaginatedTable: React.FC = () => {
             const response = await axios.get(`https://api.artic.edu/api/v1/artworks?page=${pageNumber}&limit=12`);
             console.log('Fetched Data:', response.data);
             setData(response.data.data);
-            setTotalRecords(response.data.pagination.total_pages);
+            setTotalRecords(response.data.pagination.total_pages * 12); // Total records based on the API response
         } catch (error) {
             console.error('Error fetching data', error);
         }
@@ -53,9 +53,10 @@ const PaginatedTable: React.FC = () => {
     };
 
     // Handle pagination changes
-    const onPageChange = (event: { page: number }) => {
+    const onPageChange = (event: { first: number }) => {
         console.log('Page change event:', event);
-        setPage(event.page + 1); // PrimeReact pagination is zero-indexed
+        const newPage = Math.floor(event.first / 12) + 1; // Calculate page number based on first index
+        setPage(newPage);
     };
 
     // Checkbox template for row selection
@@ -110,7 +111,10 @@ const PaginatedTable: React.FC = () => {
                 className="pi pi-chevron-down"
                 style={{ fontSize: '1.5rem', cursor: 'pointer', color: '#000' }}
                 onClick={() => setShowOverlay(true)}
-            ></i>
+            >
+            </i>
+            <span style={{marginLeft:"30px",fontSize:"18px",color:"#374151"}}>Title</span>
+
         </div>
     );
 
@@ -120,9 +124,10 @@ const PaginatedTable: React.FC = () => {
                 value={data}
                 paginator
                 rows={12}
+                first={(page - 1) * 12} // Set the first index based on the current page
                 totalRecords={totalRecords}
                 lazy
-                onPage={onPageChange as any} // Ensure TypeScript recognizes the event type
+                onPage={onPageChange}
                 loading={loading}
                 selectionMode="multiple"
                 selection={selectedRecords}
@@ -140,7 +145,7 @@ const PaginatedTable: React.FC = () => {
 
             <Dialog
                 visible={showOverlay}
-                style={{ width: '300px', backgroundColor: '#f9f9f9' }} // Set background color of the overlay
+                style={{ width: '300px', backgroundColor: '#f9f9f9' }} 
                 footer={
                     <div className="p-d-flex p-jc-center p-mt-2">
                         <Button label="Submit" icon="pi pi-check" onClick={handleSubmit} className="p-mt-2" />
@@ -155,11 +160,10 @@ const PaginatedTable: React.FC = () => {
                         value={numberOfRows.toString()} // Convert to string for InputText value
                         onChange={(e) => setNumberOfRows(parseInt(e.target.value, 10))}
                         placeholder="Enter number of rows"
-                        style={{ marginBottom: '1rem', width: '100%' }} // Add spacing below the input and ensure full width
+                        style={{ marginBottom: '1rem', width: '100%' }} 
                     />
                 </div>
             </Dialog>
-
         </div>
     );
 };
